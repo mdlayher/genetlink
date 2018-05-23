@@ -63,7 +63,20 @@ var _ nltest.Func = adapt(nil)
 // adapt is an adapter function for a Func to be used as a nltest.Func.  adapt
 // handles marshaling and unmarshaling of generic netlink messages.
 func adapt(fn Func) nltest.Func {
-	return func(req netlink.Message) ([]netlink.Message, error) {
+	return func(reqs []netlink.Message) ([]netlink.Message, error) {
+		var req netlink.Message
+		l := len(reqs)
+		switch l {
+		case 0:
+			// No messages.
+		case 1:
+			// Use the first message.
+			req = reqs[0]
+		default:
+			// Multiple messages; doesn't seem to occur with genetlink?
+			return nil, fmt.Errorf("genltest: expected zero or one request, but got: %d", l)
+		}
+
 		var gm genetlink.Message
 
 		// Populate message if some data has been passed in req.
@@ -82,7 +95,7 @@ func adapt(fn Func) nltest.Func {
 				return nil, err
 			}
 
-			return nltest.Error(nerr.number, req)
+			return nltest.Error(nerr.number, reqs)
 		}
 
 		nmsgs := make([]netlink.Message, 0, len(gmsgs))
