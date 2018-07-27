@@ -58,6 +58,38 @@ func ServeFamily(f genetlink.Family, fn Func) Func {
 	return serveFamily(f, fn)
 }
 
+// CheckRequest returns a Func that verifies that an incoming request message
+// has the specified generic netlink family, command, and netlink header flags,
+// and then passes the request through to fn.
+//
+// If family, command, or flags are set to the zero value, the specific check
+// for that value will be skipped for request message.
+func CheckRequest(family uint16, command uint8, flags netlink.HeaderFlags, fn Func) Func {
+	base := nltest.CheckRequest(
+		// Expect genetlink family in header type.
+		[]netlink.HeaderType{netlink.HeaderType(family)},
+		// Expect specified netlink flags.
+		[]netlink.HeaderFlags{flags},
+		// Make the next nltest function a noop.
+		// TODO(mdlayher): modify nltest to eliminate the need for this?
+		nltest.Func(func(_ []netlink.Message) ([]netlink.Message, error) {
+			return nil, nil
+		}),
+	)
+
+	return func(greq genetlink.Message, nreq netlink.Message) ([]genetlink.Message, error) {
+		if _, err := base([]netlink.Message{nreq}); err != nil {
+			return nil, fmt.Errorf("genltest: netlink header validation failed: %v", err)
+		}
+
+		if want, got := command, greq.Header.Command; command != 0 && want != got {
+			return nil, fmt.Errorf("genltest: unexpected generic netlink header command: %d, want: %d", got, want)
+		}
+
+		return fn(greq, nreq)
+	}
+}
+
 var _ nltest.Func = adapt(nil)
 
 // adapt is an adapter function for a Func to be used as a nltest.Func.  adapt
