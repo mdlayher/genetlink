@@ -16,10 +16,6 @@ var (
 	// errInvalidFamilyVersion is returned when a family's version is greater
 	// than an 8-bit integer.
 	errInvalidFamilyVersion = errors.New("invalid family version attribute")
-
-	// errInvalidMulticastGroupArray is returned when a multicast group array
-	// of attributes is malformed.
-	errInvalidMulticastGroupArray = errors.New("invalid multicast group attribute array")
 )
 
 // getFamily retrieves a generic netlink family with the specified name.
