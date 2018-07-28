@@ -19,20 +19,24 @@ func serveFamily(f genetlink.Family, fn Func) Func {
 			return fn(greq, nreq)
 		}
 
-		attrs, err := netlink.UnmarshalAttributes(greq.Data)
+		ad, err := netlink.NewAttributeDecoder(greq.Data)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse get family request attributes: %v", err)
+			return nil, fmt.Errorf("genltest: failed to parse get family request attributes: %v", err)
 		}
 
 		// Ensure this request is for the family provided by f.
-		for _, a := range attrs {
-			if want, got := unix.CTRL_ATTR_FAMILY_NAME, int(a.Type); want != got {
-				return nil, fmt.Errorf("unexpected get family request attribute: %d, want: %d", got, want)
+		for ad.Next() {
+			if want, got := unix.CTRL_ATTR_FAMILY_NAME, int(ad.Type()); want != got {
+				return nil, fmt.Errorf("genltest: unexpected get family request attribute: %d, want: %d", got, want)
 			}
 
-			if want, got := f.Name, nlenc.String(a.Data); want != got {
-				return nil, fmt.Errorf("unexpected get family request value: %q, want: %q", got, want)
+			if want, got := f.Name, ad.String(); want != got {
+				return nil, fmt.Errorf("genltest: unexpected get family request value: %q, want: %q", got, want)
 			}
+		}
+
+		if err := ad.Err(); err != nil {
+			return nil, fmt.Errorf("genltest: unexpected error decoding get family request: %v", err)
 		}
 
 		// Return the family information for f.

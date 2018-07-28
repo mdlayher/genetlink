@@ -3,7 +3,6 @@
 package genltest_test
 
 import (
-	"fmt"
 	"io"
 	"testing"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/mdlayher/genetlink/genltest"
 	"github.com/mdlayher/netlink"
 	"github.com/mdlayher/netlink/nlenc"
+	"github.com/mdlayher/netlink/nltest"
 	"golang.org/x/sys/unix"
 )
 
@@ -30,7 +30,7 @@ func TestServeFamily(t *testing.T) {
 					Header: genetlink.Header{
 						Command: unix.CTRL_CMD_GETFAMILY,
 					},
-					Data: mustMarshalAttributes([]netlink.Attribute{{
+					Data: nltest.MustMarshalAttributes([]netlink.Attribute{{
 						Type: 0xff,
 					}}),
 				}
@@ -47,7 +47,7 @@ func TestServeFamily(t *testing.T) {
 					Header: genetlink.Header{
 						Command: unix.CTRL_CMD_GETFAMILY,
 					},
-					Data: mustMarshalAttributes([]netlink.Attribute{{
+					Data: nltest.MustMarshalAttributes([]netlink.Attribute{{
 						Type: unix.CTRL_ATTR_FAMILY_NAME,
 						Data: nlenc.Bytes("bar"),
 					}}),
@@ -131,13 +131,4 @@ func TestServeFamily(t *testing.T) {
 			}
 		})
 	}
-}
-
-func mustMarshalAttributes(attrs []netlink.Attribute) []byte {
-	b, err := netlink.MarshalAttributes(attrs)
-	if err != nil {
-		panic(fmt.Sprintf("failed to marshal attributes: %v", err))
-	}
-
-	return b
 }
