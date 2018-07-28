@@ -187,20 +187,6 @@ func TestFamily_parseAttributes(t *testing.T) {
 			}},
 		},
 		{
-			name: "bad multicast group array",
-			attrs: []netlink.Attribute{{
-				Type: unix.CTRL_ATTR_MCAST_GROUPS,
-				Data: nltest.MustMarshalAttributes([]netlink.Attribute{
-					{
-						Type: 1,
-					},
-					{
-						Type: 3,
-					},
-				}),
-			}},
-		},
-		{
 			name: "OK",
 			attrs: []netlink.Attribute{
 				{
