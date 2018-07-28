@@ -1,13 +1,13 @@
 package genetlink_test
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
 
 	"github.com/mdlayher/genetlink"
 	"github.com/mdlayher/netlink"
-	"github.com/mdlayher/netlink/nlenc"
 )
 
 // This example demonstrates using a genetlink.Conn's high level interface
@@ -78,7 +78,7 @@ func ExampleConn_nl80211WiFi() {
 		nl80211AttributeAttributeMAC   = 6
 	)
 
-	// Ask generic netlink if nl80211 is available
+	// Ask generic netlink if nl80211 is available.
 	family, err := c.GetFamily(name)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -89,7 +89,7 @@ func ExampleConn_nl80211WiFi() {
 		log.Fatalf("failed to query for family: %v", err)
 	}
 
-	// Ask nl80211 to dump a list of all WiFi interfaces
+	// Ask nl80211 to dump a list of all WiFi interfaces.
 	req := genetlink.Message{
 		Header: genetlink.Header{
 			Command: nl80211CommandGetInterface,
@@ -98,14 +98,14 @@ func ExampleConn_nl80211WiFi() {
 	}
 
 	// Send request specifically to nl80211 instead of generic netlink
-	// controller (nlctrl)
+	// controller (nlctrl).
 	flags := netlink.HeaderFlagsRequest | netlink.HeaderFlagsDump
 	msgs, err := c.Execute(req, family.ID, flags)
 	if err != nil {
 		log.Fatalf("failed to execute: %v", err)
 	}
 
-	// Some basic information about a WiFi interface
+	// ifInfo contains basic information about a WiFi interface.
 	type ifInfo struct {
 		Index int
 		Name  string
@@ -114,23 +114,35 @@ func ExampleConn_nl80211WiFi() {
 
 	var infos []ifInfo
 	for _, m := range msgs {
-		// nl80211's response contains packed netlink attributes
-		attrs, err := netlink.UnmarshalAttributes(m.Data)
+		// nl80211's response contains packed netlink attributes.
+		ad, err := netlink.NewAttributeDecoder(m.Data)
 		if err != nil {
-			log.Fatalf("failed to unmarshal attributes: %v", err)
+			log.Fatalf("failed to create attribute decoder: %v", err)
 		}
 
-		// Gather data about interface from attributes
+		// Gather data about interface from attributes.
 		var info ifInfo
-		for _, a := range attrs {
-			switch a.Type {
+		for ad.Next() {
+			switch ad.Type() {
 			case nl80211AttributeInterfaceIndex:
-				info.Index = int(nlenc.Uint32(a.Data))
+				info.Index = int(ad.Uint32())
 			case nl80211AttributeInterfaceName:
-				info.Name = nlenc.String(a.Data)
+				info.Name = ad.String()
 			case nl80211AttributeAttributeMAC:
-				info.MAC = net.HardwareAddr(a.Data)
+				ad.Do(func(b []byte) error {
+					if l := len(b); l != 6 {
+						return fmt.Errorf("unexpected MAC length: %d", l)
+					}
+
+					info.MAC = net.HardwareAddr(b)
+					return nil
+				})
 			}
+		}
+
+		// Were any of the attributes malformed?
+		if err := ad.Err(); err != nil {
+			log.Fatalf("failed to decode attributes: %v", err)
 		}
 
 		infos = append(infos, info)

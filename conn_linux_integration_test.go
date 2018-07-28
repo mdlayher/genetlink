@@ -11,7 +11,6 @@ import (
 
 	"github.com/mdlayher/genetlink"
 	"github.com/mdlayher/netlink"
-	"github.com/mdlayher/netlink/nlenc"
 )
 
 func TestLinuxConnFamilyGetIsNotExistIntegration(t *testing.T) {
@@ -108,21 +107,32 @@ func TestLinuxConnNL80211Integration(t *testing.T) {
 
 	var infos []ifInfo
 	for _, m := range msgs {
-		attrs, err := netlink.UnmarshalAttributes(m.Data)
+		ad, err := netlink.NewAttributeDecoder(m.Data)
 		if err != nil {
-			t.Fatalf("failed to unmarshal attributes: %v", err)
+			t.Fatalf("failed to create attribute decoder: %v", err)
 		}
 
 		var info ifInfo
-		for _, a := range attrs {
-			switch a.Type {
+		for ad.Next() {
+			switch ad.Type() {
 			case nl80211AttributeInterfaceIndex:
-				info.Index = int(nlenc.Uint32(a.Data))
+				info.Index = int(ad.Uint32())
 			case nl80211AttributeInterfaceName:
-				info.Name = nlenc.String(a.Data)
+				info.Name = ad.String()
 			case nl80211AttributeAttributeMAC:
-				info.MAC = net.HardwareAddr(a.Data)
+				ad.Do(func(b []byte) error {
+					if l := len(b); l != 6 {
+						return fmt.Errorf("unexpected MAC length: %d", l)
+					}
+
+					info.MAC = net.HardwareAddr(b)
+					return nil
+				})
 			}
+		}
+
+		if err := ad.Err(); err != nil {
+			t.Fatalf("failed to decode attributes: %v", err)
 		}
 
 		infos = append(infos, info)

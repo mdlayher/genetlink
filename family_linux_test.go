@@ -10,6 +10,7 @@ import (
 	"github.com/mdlayher/genetlink/genltest"
 	"github.com/mdlayher/netlink"
 	"github.com/mdlayher/netlink/nlenc"
+	"github.com/mdlayher/netlink/nltest"
 	"golang.org/x/sys/unix"
 )
 
@@ -25,7 +26,7 @@ func TestConnGetFamily(t *testing.T) {
 			Command: unix.CTRL_CMD_GETFAMILY,
 			Version: version,
 		},
-		Data: mustMarshalAttributes([]netlink.Attribute{{
+		Data: nltest.MustMarshalAttributes([]netlink.Attribute{{
 			Type: unix.CTRL_ATTR_FAMILY_NAME,
 			Data: nlenc.Bytes(name),
 		}}),
@@ -45,7 +46,7 @@ func TestConnGetFamily(t *testing.T) {
 				Command: unix.CTRL_CMD_NEWFAMILY,
 				Version: version,
 			},
-			Data: mustMarshalAttributes([]netlink.Attribute{
+			Data: nltest.MustMarshalAttributes([]netlink.Attribute{
 				{
 					Type: unix.CTRL_ATTR_FAMILY_NAME,
 					Data: nlenc.Bytes(name),
@@ -107,7 +108,7 @@ func TestConnFamilyList(t *testing.T) {
 					Command: unix.CTRL_CMD_NEWFAMILY,
 					Version: version,
 				},
-				Data: mustMarshalAttributes([]netlink.Attribute{
+				Data: nltest.MustMarshalAttributes([]netlink.Attribute{
 					{
 						Type: unix.CTRL_ATTR_FAMILY_NAME,
 						Data: nlenc.Bytes("nlctrl"),
@@ -127,7 +128,7 @@ func TestConnFamilyList(t *testing.T) {
 					Command: unix.CTRL_CMD_NEWFAMILY,
 					Version: version,
 				},
-				Data: mustMarshalAttributes([]netlink.Attribute{
+				Data: nltest.MustMarshalAttributes([]netlink.Attribute{
 					{
 						Type: unix.CTRL_ATTR_FAMILY_NAME,
 						Data: nlenc.Bytes("nl80211"),
@@ -189,7 +190,7 @@ func TestFamily_parseAttributes(t *testing.T) {
 			name: "bad multicast group array",
 			attrs: []netlink.Attribute{{
 				Type: unix.CTRL_ATTR_MCAST_GROUPS,
-				Data: mustMarshalAttributes([]netlink.Attribute{
+				Data: nltest.MustMarshalAttributes([]netlink.Attribute{
 					{
 						Type: 1,
 					},
@@ -216,10 +217,10 @@ func TestFamily_parseAttributes(t *testing.T) {
 				},
 				{
 					Type: unix.CTRL_ATTR_MCAST_GROUPS,
-					Data: mustMarshalAttributes([]netlink.Attribute{
+					Data: nltest.MustMarshalAttributes([]netlink.Attribute{
 						{
 							Type: 1,
-							Data: mustMarshalAttributes([]netlink.Attribute{
+							Data: nltest.MustMarshalAttributes([]netlink.Attribute{
 								{
 									Type: unix.CTRL_ATTR_MCAST_GRP_ID,
 									Data: nlenc.Uint32Bytes(16),
@@ -232,7 +233,7 @@ func TestFamily_parseAttributes(t *testing.T) {
 						},
 						{
 							Type: 2,
-							Data: mustMarshalAttributes([]netlink.Attribute{
+							Data: nltest.MustMarshalAttributes([]netlink.Attribute{
 								{
 									Type: unix.CTRL_ATTR_MCAST_GRP_ID,
 									Data: nlenc.Uint32Bytes(17),
@@ -269,7 +270,7 @@ func TestFamily_parseAttributes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := genltest.Dial(func(_ genetlink.Message, _ netlink.Message) ([]genetlink.Message, error) {
 				return []genetlink.Message{{
-					Data: mustMarshalAttributes(tt.attrs),
+					Data: nltest.MustMarshalAttributes(tt.attrs),
 				}}, nil
 			})
 

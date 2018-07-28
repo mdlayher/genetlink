@@ -145,15 +145,6 @@ func mustMarshal(m encoding.BinaryMarshaler) []byte {
 	return b
 }
 
-func mustMarshalAttributes(attrs []netlink.Attribute) []byte {
-	b, err := netlink.MarshalAttributes(attrs)
-	if err != nil {
-		panic(fmt.Sprintf("failed to marshal attributes: %v", err))
-	}
-
-	return b
-}
-
 // diffNetlinkMessages compares two netlink.Messages after zeroing their
 // sequence number fields that make equality checks in testing difficult.
 func diffNetlinkMessages(want, got netlink.Message) string {
