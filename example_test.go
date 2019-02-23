@@ -99,7 +99,7 @@ func ExampleConn_nl80211WiFi() {
 
 	// Send request specifically to nl80211 instead of generic netlink
 	// controller (nlctrl).
-	flags := netlink.HeaderFlagsRequest | netlink.HeaderFlagsDump
+	flags := netlink.Request | netlink.Dump
 	msgs, err := c.Execute(req, family.ID, flags)
 	if err != nil {
 		log.Fatalf("failed to execute: %v", err)

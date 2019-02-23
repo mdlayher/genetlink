@@ -130,10 +130,10 @@ func TestCheckRequest(t *testing.T) {
 		},
 		{
 			name:  "bad flags",
-			flags: netlink.HeaderFlagsRequest,
+			flags: netlink.Request,
 			nreq: netlink.Message{
 				Header: netlink.Header{
-					Flags: netlink.HeaderFlagsReplace,
+					Flags: netlink.Replace,
 				},
 			},
 		},
@@ -150,11 +150,11 @@ func TestCheckRequest(t *testing.T) {
 			name:    "ok",
 			family:  1,
 			command: 1,
-			flags:   netlink.HeaderFlagsRequest,
+			flags:   netlink.Request,
 			nreq: netlink.Message{
 				Header: netlink.Header{
 					Type:  1,
-					Flags: netlink.HeaderFlagsRequest,
+					Flags: netlink.Request,
 				},
 			},
 			greq: genetlink.Message{

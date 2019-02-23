@@ -89,7 +89,7 @@ func TestLinuxConnNL80211Integration(t *testing.T) {
 		},
 	}
 
-	flags := netlink.HeaderFlagsRequest | netlink.HeaderFlagsDump
+	flags := netlink.Request | netlink.Dump
 	msgs, err := c.Execute(req, family.ID, flags)
 	if err != nil {
 		t.Fatalf("failed to execute: %v", err)

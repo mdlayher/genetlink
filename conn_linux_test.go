@@ -27,7 +27,7 @@ func TestConnExecute(t *testing.T) {
 		Header: netlink.Header{
 			Length: 20,
 			Type:   unix.GENL_ID_CTRL,
-			Flags:  netlink.HeaderFlagsRequest,
+			Flags:  netlink.Request,
 			PID:    nltest.PID,
 		},
 		Data: mustMarshal(req),
@@ -49,7 +49,7 @@ func TestConnExecute(t *testing.T) {
 		return wantgenl, nil
 	})
 
-	msgs, err := c.Execute(req, unix.GENL_ID_CTRL, netlink.HeaderFlagsRequest)
+	msgs, err := c.Execute(req, unix.GENL_ID_CTRL, netlink.Request)
 	if err != nil {
 		t.Fatalf("failed to execute: %v", err)
 	}
@@ -63,7 +63,7 @@ func TestConnSend(t *testing.T) {
 	const (
 		length = 24
 		family = unix.GENL_ID_CTRL
-		flags  = netlink.HeaderFlagsRequest
+		flags  = netlink.Request
 	)
 
 	req := genetlink.Message{
