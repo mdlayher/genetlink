@@ -44,8 +44,10 @@ func (c *Conn) Close() error {
 	return c.c.Close()
 }
 
-// GetFamily retrieves a generic netlink family with the specified name.  If the
-// family does not exist, the error value can be checked using os.IsNotExist.
+// GetFamily retrieves a generic netlink family with the specified name.
+//
+// If the family does not exist, the error value can be checked using
+// netlink.IsNotExist.
 func (c *Conn) GetFamily(name string) (Family, error) {
 	return c.getFamily(name)
 }
