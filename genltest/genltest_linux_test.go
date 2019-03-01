@@ -20,7 +20,7 @@ func TestConnLinuxReceiveError(t *testing.T) {
 
 	// Send some generic request to enable the testing function to send
 	// EPERM error back to us.
-	if _, err := c.Send(genetlink.Message{}, 1, netlink.HeaderFlagsRequest); err != nil {
+	if _, err := c.Send(genetlink.Message{}, 1, netlink.Request); err != nil {
 		t.Fatalf("failed to send: %v", err)
 	}
 

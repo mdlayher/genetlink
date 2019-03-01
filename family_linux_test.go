@@ -18,7 +18,7 @@ func TestConnGetFamily(t *testing.T) {
 	const (
 		name    = "nlctrl"
 		version = 1
-		flags   = netlink.HeaderFlagsRequest
+		flags   = netlink.Request
 	)
 
 	wantgenl := genetlink.Message{
@@ -82,7 +82,7 @@ func TestConnGetFamily(t *testing.T) {
 func TestConnFamilyList(t *testing.T) {
 	const (
 		version = 1
-		flags   = netlink.HeaderFlagsRequest | netlink.HeaderFlagsDump
+		flags   = netlink.Request | netlink.Dump
 	)
 
 	wantgenl := genetlink.Message{
