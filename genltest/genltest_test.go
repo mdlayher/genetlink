@@ -99,7 +99,7 @@ func TestConnReceiveError(t *testing.T) {
 	defer c.Close()
 
 	_, _, err := c.Receive()
-	if err != errFoo {
+	if err.(*netlink.OpError).Err != errFoo {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
