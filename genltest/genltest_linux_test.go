@@ -25,7 +25,12 @@ func TestConnLinuxReceiveError(t *testing.T) {
 	}
 
 	_, _, err := c.Receive()
-	if !os.IsPermission(err) {
+	if err == nil {
+		t.Fatal("expected an error, but none occurred")
+	}
+
+	serr := err.(*netlink.OpError).Err
+	if !os.IsPermission(serr) {
 		t.Fatalf("expected permission denied error, but got: %v", err)
 	}
 }

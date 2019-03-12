@@ -3,9 +3,9 @@
 package genetlink_test
 
 import (
+	"errors"
 	"fmt"
 	"net"
-	"os"
 	"sync"
 	"testing"
 
@@ -13,9 +13,14 @@ import (
 	"github.com/mdlayher/netlink"
 )
 
+var errNLCtrlMissing = errors.New("family nlctrl appears to not exist, so " +
+	"generic netlink is not functional on this machine; if you believe you " +
+	"have received this message in error, please file an issue at " +
+	"https://github.com/mdlayher/genetlink")
+
 func TestLinuxConnFamilyGetIsNotExistIntegration(t *testing.T) {
 	// Test that the documented behavior of returning an error that is compatible
-	// with os.IsNotExist is correct
+	// with netlink.IsNotExist is correct.
 	const name = "NOTEXISTS"
 
 	c, err := genetlink.Dial(nil)
@@ -23,7 +28,7 @@ func TestLinuxConnFamilyGetIsNotExistIntegration(t *testing.T) {
 		t.Fatalf("failed to dial generic netlink: %v", err)
 	}
 
-	if _, err := c.GetFamily(name); !os.IsNotExist(err) {
+	if _, err := c.GetFamily(name); !netlink.IsNotExist(err) {
 		t.Fatalf("expected not exists error, got: %v", err)
 	}
 
@@ -41,8 +46,9 @@ func TestLinuxConnFamilyGetIntegration(t *testing.T) {
 	const name = "nlctrl"
 	family, err := c.GetFamily(name)
 	if err != nil {
-		if os.IsNotExist(err) {
-			t.Skipf("skipping because %q family not available", name)
+		// nlctrl *should* always exist in order for genetlink to work at all.
+		if netlink.IsNotExist(err) {
+			t.Fatal(errNLCtrlMissing)
 		}
 
 		t.Fatalf("failed to query for family: %v", err)
@@ -75,7 +81,7 @@ func TestLinuxConnNL80211Integration(t *testing.T) {
 
 	family, err := c.GetFamily(name)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if netlink.IsNotExist(err) {
 			t.Skipf("skipping because %q family not available", name)
 		}
 
@@ -193,7 +199,7 @@ func TestLinuxConnFamilyListIntegration(t *testing.T) {
 	}
 
 	if !found {
-		t.Fatalf("family %q was not found", name)
+		t.Fatal(errNLCtrlMissing)
 	}
 }
 
