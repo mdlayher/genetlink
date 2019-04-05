@@ -141,18 +141,10 @@ func (c *Conn) SetWriteDeadline(t time.Time) error {
 // returns a copy of the netlink.Message with all parameters populated, for
 // later validation.
 func (c *Conn) Send(m Message, family uint16, flags netlink.HeaderFlags) (netlink.Message, error) {
-	nm := netlink.Message{
-		Header: netlink.Header{
-			Type:  netlink.HeaderType(family),
-			Flags: flags,
-		},
-	}
-
-	mb, err := m.MarshalBinary()
+	nm, err := packMessage(m, family, flags)
 	if err != nil {
 		return netlink.Message{}, err
 	}
-	nm.Data = mb
 
 	reqnm, err := c.c.Send(nm)
 	if err != nil {
@@ -170,14 +162,9 @@ func (c *Conn) Receive() ([]Message, []netlink.Message, error) {
 		return nil, nil, err
 	}
 
-	gmsgs := make([]Message, 0, len(msgs))
-	for _, nm := range msgs {
-		var gm Message
-		if err := (&gm).UnmarshalBinary(nm.Data); err != nil {
-			return nil, nil, err
-		}
-
-		gmsgs = append(gmsgs, gm)
+	gmsgs, err := unpackMessages(msgs)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return gmsgs, msgs, nil
@@ -205,4 +192,38 @@ func (c *Conn) Execute(m Message, family uint16, flags netlink.HeaderFlags) ([]M
 	}
 
 	return msgs, nil
+}
+
+// packMessage packs a generic netlink Message into a netlink.Message with the
+// appropriate generic netlink family and netlink flags.
+func packMessage(m Message, family uint16, flags netlink.HeaderFlags) (netlink.Message, error) {
+	nm := netlink.Message{
+		Header: netlink.Header{
+			Type:  netlink.HeaderType(family),
+			Flags: flags,
+		},
+	}
+
+	mb, err := m.MarshalBinary()
+	if err != nil {
+		return netlink.Message{}, err
+	}
+	nm.Data = mb
+
+	return nm, nil
+}
+
+// unpackMessages unpacks generic netlink Messages from a slice of netlink.Messages.
+func unpackMessages(msgs []netlink.Message) ([]Message, error) {
+	gmsgs := make([]Message, 0, len(msgs))
+	for _, nm := range msgs {
+		var gm Message
+		if err := (&gm).UnmarshalBinary(nm.Data); err != nil {
+			return nil, err
+		}
+
+		gmsgs = append(gmsgs, gm)
+	}
+
+	return gmsgs, nil
 }
