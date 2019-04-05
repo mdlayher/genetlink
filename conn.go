@@ -11,8 +11,12 @@ import (
 // Protocol is the netlink protocol constant used to specify generic netlink.
 const Protocol = 0x10 // unix.NETLINK_GENERIC
 
-// A Conn is a generic netlink connection.  A Conn can be used to send and
+// A Conn is a generic netlink connection. A Conn can be used to send and
 // receive generic netlink messages to and from netlink.
+//
+// A Conn is safe for concurrent use, but to avoid contention in
+// high-throughput applications, the caller should almost certainly create a
+// pool of Conns and distribute them among workers.
 type Conn struct {
 	// Operating system-specific netlink connection.
 	c *netlink.Conn
@@ -39,7 +43,8 @@ func NewConn(c *netlink.Conn) *Conn {
 	return &Conn{c: c}
 }
 
-// Close closes the connection.
+// Close closes the connection. Close will unblock any concurrent calls to
+// Receive which are waiting on a response from the kernel.
 func (c *Conn) Close() error {
 	return c.c.Close()
 }
@@ -170,18 +175,23 @@ func (c *Conn) Receive() ([]Message, []netlink.Message, error) {
 	return gmsgs, msgs, nil
 }
 
-// Execute sends a single Message to netlink using Conn.Send, receives one or
-// more replies using Conn.Receive, and then checks the validity of the replies
-// against the request using netlink.Validate.
+// Execute sends a single Message to netlink using Send, receives one or more
+// replies using Receive, and then checks the validity of the replies against
+// the request using netlink.Validate.
 //
-// See the documentation of Conn.Send, Conn.Receive, and netlink.Validate for
-// details about each function.
+// Execute acquires a lock for the duration of the function call which blocks
+// concurrent calls to Send and Receive, in order to ensure consistency between
+// generic netlink request/reply messages.
+//
+// See the documentation of Send, Receive, and netlink.Validate for details
+// about each function.
 func (c *Conn) Execute(m Message, family uint16, flags netlink.HeaderFlags) ([]Message, error) {
 	nm, err := packMessage(m, family, flags)
 	if err != nil {
 		return nil, err
 	}
 
+	// Locking behavior handled by netlink.Conn.Execute.
 	msgs, err := c.c.Execute(nm)
 	if err != nil {
 		return nil, err
