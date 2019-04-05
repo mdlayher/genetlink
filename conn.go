@@ -177,21 +177,17 @@ func (c *Conn) Receive() ([]Message, []netlink.Message, error) {
 // See the documentation of Conn.Send, Conn.Receive, and netlink.Validate for
 // details about each function.
 func (c *Conn) Execute(m Message, family uint16, flags netlink.HeaderFlags) ([]Message, error) {
-	req, err := c.Send(m, family, flags)
+	nm, err := packMessage(m, family, flags)
 	if err != nil {
 		return nil, err
 	}
 
-	msgs, replies, err := c.Receive()
+	msgs, err := c.c.Execute(nm)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := netlink.Validate(req, replies); err != nil {
-		return nil, err
-	}
-
-	return msgs, nil
+	return unpackMessages(msgs)
 }
 
 // packMessage packs a generic netlink Message into a netlink.Message with the
