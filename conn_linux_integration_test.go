@@ -22,7 +22,7 @@ var errNLCtrlMissing = errors.New("family nlctrl appears to not exist, so " +
 	"have received this message in error, please file an issue at " +
 	"https://github.com/mdlayher/genetlink")
 
-func TestLinuxConnFamilyGetIsNotExistIntegration(t *testing.T) {
+func TestIntegrationConnGetFamilyIsNotExist(t *testing.T) {
 	// Test that the documented behavior of returning an error that is compatible
 	// with netlink.IsNotExist is correct.
 	const name = "NOTEXISTS"
@@ -41,7 +41,7 @@ func TestLinuxConnFamilyGetIsNotExistIntegration(t *testing.T) {
 	}
 }
 
-func TestLinuxConnFamilyGetIntegration(t *testing.T) {
+func TestIntegrationConnGetFamily(t *testing.T) {
 	c, err := genetlink.Dial(nil)
 	if err != nil {
 		t.Fatalf("failed to dial generic netlink: %v", err)
@@ -67,7 +67,7 @@ func TestLinuxConnFamilyGetIntegration(t *testing.T) {
 	}
 }
 
-func TestLinuxConnNL80211Integration(t *testing.T) {
+func TestIntegrationConnNL80211(t *testing.T) {
 	c, err := genetlink.Dial(nil)
 	if err != nil {
 		t.Fatalf("failed to dial generic netlink: %v", err)
@@ -178,7 +178,7 @@ func TestLinuxConnNL80211Integration(t *testing.T) {
 	}
 }
 
-func TestLinuxConnFamilyListIntegration(t *testing.T) {
+func TestIntegrationConnListFamilies(t *testing.T) {
 	c, err := genetlink.Dial(nil)
 	if err != nil {
 		t.Fatalf("failed to dial generic netlink: %v", err)
@@ -207,7 +207,7 @@ func TestLinuxConnFamilyListIntegration(t *testing.T) {
 	}
 }
 
-func TestLinuxConnIntegrationConcurrentRaceFree(t *testing.T) {
+func TestIntegrationConnConcurrentRaceFree(t *testing.T) {
 	c, err := genetlink.Dial(nil)
 	if err != nil {
 		t.Fatalf("failed to dial generic netlink: %v", err)
@@ -253,7 +253,7 @@ func TestLinuxConnIntegrationConcurrentRaceFree(t *testing.T) {
 	}
 }
 
-func TestLinuxConnIntegrationConcurrentReceiveClose(t *testing.T) {
+func TestIntegrationConnConcurrentReceiveClose(t *testing.T) {
 	c, err := genetlink.Dial(nil)
 	if err != nil {
 		t.Fatalf("failed to dial generic netlink: %v", err)
@@ -290,7 +290,7 @@ func TestLinuxConnIntegrationConcurrentReceiveClose(t *testing.T) {
 	}
 }
 
-func TestLinuxConnIntegrationConcurrentSerializeExecute(t *testing.T) {
+func TestIntegrationConnConcurrentSerializeExecute(t *testing.T) {
 	c, err := genetlink.Dial(nil)
 	if err != nil {
 		t.Fatalf("failed to dial generic netlink: %v", err)
