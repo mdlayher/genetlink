@@ -1,13 +1,9 @@
 package genetlink
 
-import (
-	"errors"
-)
+import "errors"
 
-var (
-	// errInvalidMessage is returned when a Message is malformed.
-	errInvalidMessage = errors.New("generic netlink message is invalid or too short")
-)
+// errInvalidMessage is returned when a Message is malformed.
+var errInvalidMessage = errors.New("generic netlink message is invalid or too short")
 
 // A Header is a generic netlink header.  A Header is sent and received with
 // each generic netlink message to indicate metadata regarding a Message.

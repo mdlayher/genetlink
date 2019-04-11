@@ -10,12 +10,10 @@ import (
 	"github.com/mdlayher/netlink"
 )
 
-var (
-	// errUnimplemented is returned by all functions on platforms that
-	// cannot make use of genltest.
-	errUnimplemented = fmt.Errorf("genltest not implemented on %s/%s",
-		runtime.GOOS, runtime.GOARCH)
-)
+// errUnimplemented is returned by all functions on platforms that
+// cannot make use of genltest.
+var errUnimplemented = fmt.Errorf("genltest not implemented on %s/%s",
+	runtime.GOOS, runtime.GOARCH)
 
 // serveFamily returns a Func which always returns an error.
 func serveFamily(f genetlink.Family, fn Func) Func {
