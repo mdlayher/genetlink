@@ -6,3 +6,7 @@ MIT Licensed.
 
 For more information about how netlink and generic netlink work,
 check out my blog series on [Linux, Netlink, and Go](https://medium.com/@mdlayher/linux-netlink-and-go-part-1-netlink-4781aaeeaca8).
+
+If you have any questions or you'd like some guidance, please join us on
+[Gophers Slack](https://invite.slack.golangbridge.org) in the `#networking`
+channel!
