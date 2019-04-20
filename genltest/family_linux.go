@@ -7,7 +7,6 @@ import (
 
 	"github.com/mdlayher/genetlink"
 	"github.com/mdlayher/netlink"
-	"github.com/mdlayher/netlink/nlenc"
 	"golang.org/x/sys/unix"
 )
 
@@ -40,21 +39,17 @@ func serveFamily(f genetlink.Family, fn Func) Func {
 		}
 
 		// Return the family information for f.
-		// TODO(mdlayher): return multicast groups and other attributes.
-		attrb, err := netlink.MarshalAttributes([]netlink.Attribute{
-			{
-				Type: unix.CTRL_ATTR_FAMILY_ID,
-				Data: nlenc.Uint16Bytes(f.ID),
-			},
-			{
-				Type: unix.CTRL_ATTR_FAMILY_NAME,
-				Data: nlenc.Bytes(f.Name),
-			},
-			{
-				Type: unix.CTRL_ATTR_VERSION,
-				Data: nlenc.Uint32Bytes(uint32(f.Version)),
-			},
-		})
+		ae := netlink.NewAttributeEncoder()
+		ae.Uint16(unix.CTRL_ATTR_FAMILY_ID, f.ID)
+		ae.String(unix.CTRL_ATTR_FAMILY_NAME, f.Name)
+		ae.Uint32(unix.CTRL_ATTR_VERSION, uint32(f.Version))
+
+		// Encode multicast group attributes if applicable.
+		if len(f.Groups) > 0 {
+			ae.Do(unix.CTRL_ATTR_MCAST_GROUPS, encodeGroups(f.Groups))
+		}
+
+		attrb, err := ae.Encode()
 		if err != nil {
 			return nil, err
 		}
@@ -67,5 +62,26 @@ func serveFamily(f genetlink.Family, fn Func) Func {
 			},
 			Data: attrb,
 		}}, nil
+	}
+}
+
+// encodeGroups encodes multicast groups as packed netlink attributes.
+func encodeGroups(groups []genetlink.MulticastGroup) func() ([]byte, error) {
+	return func() ([]byte, error) {
+		nae := netlink.NewAttributeEncoder()
+
+		// Groups are a netlink "array" of nested attributes.
+		for i, g := range groups {
+			nae.Do(uint16(i), func() ([]byte, error) {
+				gae := netlink.NewAttributeEncoder()
+
+				gae.String(unix.CTRL_ATTR_MCAST_GRP_NAME, g.Name)
+				gae.Uint32(unix.CTRL_ATTR_MCAST_GRP_ID, g.ID)
+
+				return gae.Encode()
+			})
+		}
+
+		return nae.Encode()
 	}
 }

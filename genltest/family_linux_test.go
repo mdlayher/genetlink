@@ -63,6 +63,16 @@ func TestServeFamily(t *testing.T) {
 				ID:      1,
 				Name:    "foo",
 				Version: 1,
+				Groups: []genetlink.MulticastGroup{
+					{
+						ID:   2,
+						Name: "bar",
+					},
+					{
+						ID:   3,
+						Name: "baz",
+					},
+				},
 			},
 			fn: func(c *genetlink.Conn) (*genetlink.Family, error) {
 				f, err := c.GetFamily("foo")
