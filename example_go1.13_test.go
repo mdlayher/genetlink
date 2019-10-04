@@ -1,9 +1,13 @@
+//+build go1.13
+
 package genetlink_test
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"github.com/mdlayher/genetlink"
 	"github.com/mdlayher/netlink"
@@ -24,8 +28,9 @@ func ExampleConn_getFamily() {
 	family, err := c.GetFamily(name)
 	if err != nil {
 		// If a family doesn't exist, the error can be checked using
-		// netlink.IsNotExist.
-		if netlink.IsNotExist(err) {
+		// errors.Is in Go 1.13+, or the deprecated netlink.IsNotExist in Go
+		// 1.12 and below.
+		if errors.Is(err, os.ErrNotExist) {
 			log.Printf("%q family not available", name)
 			return
 		}
@@ -81,7 +86,7 @@ func ExampleConn_nl80211WiFi() {
 	// Ask generic netlink if nl80211 is available.
 	family, err := c.GetFamily(name)
 	if err != nil {
-		if netlink.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			log.Printf("%q family not available", name)
 			return
 		}
