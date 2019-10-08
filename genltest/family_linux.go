@@ -46,7 +46,7 @@ func serveFamily(f genetlink.Family, fn Func) Func {
 
 		// Encode multicast group attributes if applicable.
 		if len(f.Groups) > 0 {
-			ae.Do(unix.CTRL_ATTR_MCAST_GROUPS, encodeGroups(f.Groups))
+			ae.Nested(unix.CTRL_ATTR_MCAST_GROUPS, encodeGroups(f.Groups))
 		}
 
 		attrb, err := ae.Encode()
@@ -66,22 +66,17 @@ func serveFamily(f genetlink.Family, fn Func) Func {
 }
 
 // encodeGroups encodes multicast groups as packed netlink attributes.
-func encodeGroups(groups []genetlink.MulticastGroup) func() ([]byte, error) {
-	return func() ([]byte, error) {
-		nae := netlink.NewAttributeEncoder()
-
+func encodeGroups(groups []genetlink.MulticastGroup) func(ae *netlink.AttributeEncoder) error {
+	return func(ae *netlink.AttributeEncoder) error {
 		// Groups are a netlink "array" of nested attributes.
 		for i, g := range groups {
-			nae.Do(uint16(i), func() ([]byte, error) {
-				gae := netlink.NewAttributeEncoder()
-
-				gae.String(unix.CTRL_ATTR_MCAST_GRP_NAME, g.Name)
-				gae.Uint32(unix.CTRL_ATTR_MCAST_GRP_ID, g.ID)
-
-				return gae.Encode()
+			ae.Nested(uint16(i), func(nae *netlink.AttributeEncoder) error {
+				nae.String(unix.CTRL_ATTR_MCAST_GRP_NAME, g.Name)
+				nae.Uint32(unix.CTRL_ATTR_MCAST_GRP_ID, g.ID)
+				return nil
 			})
 		}
 
-		return nae.Encode()
+		return nil
 	}
 }
