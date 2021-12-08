@@ -5,7 +5,6 @@ package genetlink_test
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -28,9 +27,7 @@ func ExampleConn_getFamily() {
 	const name = "nlctrl"
 	family, err := c.GetFamily(name)
 	if err != nil {
-		// If a family doesn't exist, the error can be checked using
-		// errors.Is in Go 1.13+, or the deprecated netlink.IsNotExist in Go
-		// 1.12 and below.
+		// If a family doesn't exist, nothing to do.
 		if errors.Is(err, os.ErrNotExist) {
 			log.Printf("%q family not available", name)
 			return
@@ -105,8 +102,7 @@ func ExampleConn_nl80211WiFi() {
 
 	// Send request specifically to nl80211 instead of generic netlink
 	// controller (nlctrl).
-	flags := netlink.Request | netlink.Dump
-	msgs, err := c.Execute(req, family.ID, flags)
+	msgs, err := c.Execute(req, family.ID, netlink.Request|netlink.Dump)
 	if err != nil {
 		log.Fatalf("failed to execute: %v", err)
 	}
@@ -118,7 +114,7 @@ func ExampleConn_nl80211WiFi() {
 		MAC   net.HardwareAddr
 	}
 
-	var infos []ifInfo
+	infos := make([]ifInfo, 0, len(msgs))
 	for _, m := range msgs {
 		// nl80211's response contains packed netlink attributes.
 		ad, err := netlink.NewAttributeDecoder(m.Data)
@@ -135,14 +131,7 @@ func ExampleConn_nl80211WiFi() {
 			case nl80211AttributeInterfaceName:
 				info.Name = ad.String()
 			case nl80211AttributeAttributeMAC:
-				ad.Do(func(b []byte) error {
-					if l := len(b); l != 6 {
-						return fmt.Errorf("unexpected MAC length: %d", l)
-					}
-
-					info.MAC = net.HardwareAddr(b)
-					return nil
-				})
+				info.MAC = ad.Bytes()
 			}
 		}
 
