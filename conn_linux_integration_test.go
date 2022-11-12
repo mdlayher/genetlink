@@ -1,4 +1,5 @@
 //go:build linux
+// +build linux
 
 package genetlink_test
 
@@ -158,10 +159,18 @@ func TestIntegrationConnConcurrentSerializeExecute(t *testing.T) {
 
 	const iterations = 2000
 
-	// Pick families that are likely to exist on any given system.
+	// Pick families that are likely to exist on any given system. If they
+	// don't, just skip the test. See:
+	// https://github.com/mdlayher/genetlink/issues/7.
 	families := []string{
 		"nlctrl",
 		"acpi_event",
+	}
+
+	for _, f := range families {
+		if _, err := c.GetFamily(f); err != nil {
+			t.Skipf("skipping, could not get family %q: %v", f, err)
+		}
 	}
 
 	var wg sync.WaitGroup
