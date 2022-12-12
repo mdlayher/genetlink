@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# v1.3.1
+
+- [Improvement]: bump package netlink to pull in big endian architecture fixes.
+
 # v1.3.0
 
 **This is the first release of package genetlink that only supports Go 1.18+.
