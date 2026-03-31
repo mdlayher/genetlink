@@ -181,6 +181,6 @@ func TestCheckRequest(t *testing.T) {
 	}
 }
 
-var noop = func(greq genetlink.Message, nreq netlink.Message) ([]genetlink.Message, error) {
+var noop = func(_ genetlink.Message, _ netlink.Message) ([]genetlink.Message, error) {
 	return nil, nil
 }

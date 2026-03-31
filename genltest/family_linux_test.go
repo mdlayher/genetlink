@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package genltest_test
 
@@ -111,7 +110,7 @@ func TestServeFamily(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var pass bool
 			c := genltest.Dial(genltest.ServeFamily(tt.f,
-				func(greq genetlink.Message, nreq netlink.Message) ([]genetlink.Message, error) {
+				func(_ genetlink.Message, _ netlink.Message) ([]genetlink.Message, error) {
 					// Message was passed to inner handler.
 					pass = true
 					return nil, io.EOF
