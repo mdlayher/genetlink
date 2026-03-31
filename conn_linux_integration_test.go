@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package genetlink_test
 
@@ -59,7 +58,7 @@ func TestIntegrationConnConcurrentRaceFree(t *testing.T) {
 	}
 
 	execN := func(n int) {
-		for i := 0; i < n; i++ {
+		for range n {
 			// Don't expect a "valid" request/reply because we are not serializing
 			// our Send/Receive calls via Execute or with an external lock.
 			//
@@ -90,7 +89,7 @@ func TestIntegrationConnConcurrentRaceFree(t *testing.T) {
 	wg.Add(workers)
 	defer wg.Wait()
 
-	for i := 0; i < workers; i++ {
+	for range workers {
 		go func() {
 			defer wg.Done()
 			execN(iterations)
@@ -142,7 +141,7 @@ func TestIntegrationConnConcurrentSerializeExecute(t *testing.T) {
 	}
 
 	execN := func(n int, family string) {
-		for i := 0; i < n; i++ {
+		for range n {
 			// GetFamily will internally call Execute to ensure its
 			// request/response transaction is serialized appropriately, and
 			// any errors doing so will be reported here.
@@ -341,6 +340,6 @@ func TestIntegrationConnNL80211(t *testing.T) {
 	}
 }
 
-func panicf(format string, a ...interface{}) {
+func panicf(format string, a ...any) {
 	panic(fmt.Sprintf(format, a...))
 }
